@@ -1,0 +1,16 @@
+{
+  "name": "fashion-shop",
+  "version": "1.0.0",
+  "scripts": {
+    "setup":       "node setup.js",
+    "dev":         "concurrently -n backend,frontend -c cyan,magenta \"npm run server\" \"npm run client\"",
+    "server":      "cd backend && npm run dev",
+    "client":      "cd frontend && npm run dev",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "seed":        "cd backend && node seed.js",
+    "build":       "cd frontend && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
