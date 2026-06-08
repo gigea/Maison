@@ -1,0 +1,46 @@
+.product-card {
+  display: block; background: var(--c-surface);
+  border-radius: var(--radius-md); overflow: hidden;
+  border: 1px solid var(--c-border);
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+.product-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.product-card-img {
+  position: relative; aspect-ratio: 3/4; overflow: hidden; background: #F5F3F0;
+}
+.product-card-img img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.product-card:hover .product-card-img img { transform: scale(1.04); }
+.product-badge { position: absolute; top: 12px; left: 12px; }
+.product-card-overlay {
+  position: absolute; inset: 0; background: rgba(26,23,20,0.35);
+  display: flex; align-items: flex-end; justify-content: center; padding: 20px;
+  opacity: 0; transition: opacity var(--transition);
+}
+.product-card:hover .product-card-overlay { opacity: 1; }
+.product-card-info { padding: 14px 16px 16px; }
+.product-card-cat  {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--c-muted); margin-bottom: 4px;
+}
+.product-card-name { font-family: var(--font-display); font-size: 1rem; font-weight: 600; margin-bottom: 10px; line-height: 1.3; }
+.product-card-footer { display: flex; align-items: center; justify-content: space-between; }
+.product-card-price { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.price-sale     { color: var(--c-accent); font-weight: 600; }
+.price-original { text-decoration: line-through; color: var(--c-muted); font-size: 13px; }
+.product-card-rating { display: flex; align-items: center; gap: 3px; font-size: 13px; }
+.star   { color: #F59E0B; }
+.rating-count { color: var(--c-muted); }
+
+.product-card-link { display: block; color: inherit; text-decoration: none; }
+.product-card-badges {
+  position: absolute; top: 12px; left: 12px; display: flex; flex-direction: column; gap: 6px;
+}
+.product-badge { padding: 6px 10px; font-size: 11px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; }
+.badge-new { background: #1d4ed8; color: #fff; }
+.badge-warning { background: #f97316; color: #fff; }
+.badge-danger { background: #dc2626; color: #fff; }
+.product-card-actions { padding: 0 16px 16px; display: flex; justify-content: center; }
+.product-card-actions .btn { width: 100%; }

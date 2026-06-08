@@ -1,0 +1,60 @@
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: var(--nav-h);
+  background: rgba(250, 250, 248, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--c-border);
+}
+.navbar-inner {
+  height: 100%; display: flex; align-items: center; gap: 32px;
+}
+.navbar-logo {
+  font-family: var(--font-display);
+  font-size: 1.5rem; font-weight: 700; letter-spacing: 0.12em;
+  color: var(--c-text); flex-shrink: 0;
+}
+.navbar-links {
+  display: flex; gap: 28px; flex: 1;
+}
+.navbar-links a {
+  font-size: 13px; font-weight: 500; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--c-muted);
+  transition: color var(--transition); padding: 4px 0;
+  border-bottom: 1.5px solid transparent;
+}
+.navbar-links a:hover,
+.navbar-links a.active { color: var(--c-text); border-bottom-color: var(--c-accent); }
+.navbar-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.navbar-user    { display: flex; align-items: center; gap: 4px; }
+.navbar-name    { font-size: 13px; color: var(--c-muted); }
+.cart-btn {
+  position: relative; display: flex; align-items: center;
+  padding: 8px; color: var(--c-text); transition: color var(--transition);
+}
+.cart-btn:hover { color: var(--c-accent); }
+.cart-badge {
+  position: absolute; top: 0; right: 0;
+  background: var(--c-accent); color: #fff;
+  font-size: 10px; font-weight: 700; width: 17px; height: 17px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+}
+.menu-toggle {
+  background: none; border: none; padding: 8px;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.menu-toggle span {
+  display: block; width: 22px; height: 1.5px; background: var(--c-text); transition: all var(--transition);
+}
+
+@media (max-width: 768px) {
+  .navbar-links {
+    position: fixed; top: var(--nav-h); left: 0; right: 0;
+    background: var(--c-surface); flex-direction: column; gap: 0;
+    padding: 8px 0; border-bottom: 1px solid var(--c-border);
+    transform: translateY(-120%); transition: transform 0.3s ease; pointer-events: none;
+  }
+  .navbar-links.open { transform: translateY(0); pointer-events: all; }
+  .navbar-links a    { padding: 14px 24px; border-bottom: none; border-left: 3px solid transparent; }
+  .navbar-links a.active { border-left-color: var(--c-accent); }
+  .navbar-user .btn  { display: none; }
+}

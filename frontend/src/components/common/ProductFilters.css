@@ -1,0 +1,29 @@
+.filters {
+  background: var(--c-surface); border: 1px solid var(--c-border);
+  border-radius: var(--radius-md); padding: 24px; position: sticky; top: calc(var(--nav-h) + 24px);
+}
+.filters-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
+}
+.filters-header h3 { font-size: 1rem; font-family: var(--font-display); }
+.filter-section { padding: 18px 0; border-top: 1px solid var(--c-border); }
+.filter-section h4 {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--c-muted); margin-bottom: 12px; font-family: var(--font-body);
+}
+.filter-option {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  font-size: 14px; margin-bottom: 8px;
+}
+.filter-option input { accent-color: var(--c-accent); }
+.size-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.size-chip {
+  padding: 7px 4px; text-align: center; font-size: 13px; font-weight: 500;
+  border: 1.5px solid var(--c-border); border-radius: var(--radius-sm);
+  background: transparent; transition: all var(--transition);
+}
+.size-chip:hover  { border-color: var(--c-accent); color: var(--c-accent); }
+.size-chip.active { border-color: var(--c-dark); background: var(--c-dark); color: #fff; }
+.price-inputs { display: flex; align-items: center; gap: 8px; }
+.price-inputs .form-input { padding: 8px 10px; }
+.price-inputs span { color: var(--c-muted); flex-shrink: 0; }

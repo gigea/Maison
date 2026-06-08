@@ -1,0 +1,12 @@
+.notfound {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 80vh; text-align: center; padding: 40px 16px;
+}
+.notfound-inner { max-width: 440px; }
+.notfound-code {
+  font-family: var(--font-display); font-size: clamp(5rem, 15vw, 9rem);
+  font-weight: 700; color: var(--c-border); line-height: 1; margin-bottom: 8px;
+}
+.notfound h1  { margin-bottom: 12px; }
+.notfound-sub { color: var(--c-muted); margin-bottom: 32px; }
+.notfound-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }

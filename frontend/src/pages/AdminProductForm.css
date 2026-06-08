@@ -1,0 +1,46 @@
+.apf-page   { padding-bottom: 80px; }
+.apf-header { margin-bottom: 28px; }
+.apf-header h1 { font-size: clamp(1.4rem, 3vw, 2rem); margin-top: 8px; }
+
+.apf-form { }
+.apf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.apf-col  { display: flex; flex-direction: column; gap: 20px; }
+.apf-card { padding: 24px; }
+.apf-card h3 { margin-bottom: 20px; font-size: 1rem; }
+.apf-hint { font-size: 13px; color: var(--c-muted); margin-bottom: 14px; }
+
+.apf-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.apf-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+/* Images */
+.image-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.image-row .form-input { flex: 1; }
+.img-preview { width: 44px; height: 54px; object-fit: cover; border-radius: 4px; flex-shrink: 0; border: 1px solid var(--c-border); }
+
+/* Colors */
+.color-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.color-tag {
+  display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 6px;
+  background: var(--c-bg); border: 1px solid var(--c-border); border-radius: 40px; font-size: 13px;
+}
+.color-dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.15); flex-shrink: 0; }
+.color-tag button { background: none; border: none; color: var(--c-muted); font-size: 15px; line-height: 1; padding: 0 0 0 2px; }
+.color-tag button:hover { color: var(--c-danger); }
+.color-adder { display: flex; gap: 8px; align-items: center; }
+.color-adder .form-input { flex: 1; }
+.color-picker { width: 44px; height: 42px; border: 1.5px solid var(--c-border); border-radius: var(--radius-sm); padding: 2px; cursor: pointer; flex-shrink: 0; }
+
+/* Featured toggle */
+.featured-toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; font-weight: 500; margin-top: 4px; }
+.featured-toggle input { accent-color: var(--c-accent); width: 16px; height: 16px; }
+
+/* Actions */
+.apf-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 4px; }
+
+@media (max-width: 900px) {
+  .apf-grid  { grid-template-columns: 1fr; }
+  .apf-row-3 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .apf-row-2, .apf-row-3 { grid-template-columns: 1fr; }
+}

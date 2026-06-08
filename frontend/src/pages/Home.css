@@ -1,0 +1,56 @@
+/* Hero */
+.hero {
+  display: grid; grid-template-columns: 1fr 1fr;
+  min-height: 90vh; padding-top: var(--nav-h);
+}
+.hero-content {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 60px 64px;
+}
+.hero-eyebrow {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--c-accent); font-weight: 600; margin-bottom: 16px;
+}
+.hero-content h1 { margin-bottom: 20px; }
+.hero-content em { font-style: italic; color: var(--c-accent); }
+.hero-sub        { font-size: 1.05rem; color: var(--c-muted); max-width: 400px; margin-bottom: 36px; }
+.hero-ctas       { display: flex; gap: 16px; flex-wrap: wrap; }
+.hero-image      { overflow: hidden; }
+.hero-image img  { width: 100%; height: 100%; object-fit: cover; }
+
+/* Categories */
+.categories     { padding: 80px 0; }
+.categories h2  { text-align: center; margin-bottom: 36px; }
+.categories-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.cat-card {
+  position: relative; aspect-ratio: 3/4; border-radius: var(--radius-md);
+  overflow: hidden; display: block;
+}
+.cat-card img  { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+.cat-card:hover img { transform: scale(1.05); }
+.cat-card span {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+  color: #fff; padding: 20px 16px 16px;
+  font-family: var(--font-display); font-size: 1.1rem; font-weight: 600;
+}
+
+/* Featured */
+.featured        { padding-bottom: 80px; }
+.section-header  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+.products-grid   { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+/* Banner */
+.banner     { background: var(--c-dark); color: rgba(255,255,255,0.8); padding: 16px 0; }
+.banner-content { text-align: center; font-size: 13px; letter-spacing: 0.04em; }
+
+@media (max-width: 1024px) {
+  .products-grid    { grid-template-columns: repeat(3, 1fr); }
+  .categories-grid  { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .hero             { grid-template-columns: 1fr; min-height: auto; }
+  .hero-image       { height: 50vw; }
+  .hero-content     { padding: 40px 24px; }
+  .products-grid    { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+}
