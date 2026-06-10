@@ -53,17 +53,6 @@ router.get('/featured', async (req, res) => {
   }
 });
 
-// GET /api/products/recent?ids=123,456
-router.get('/recent', async (req, res) => {
-  try {
-    const ids = (req.query.ids || '').split(',').filter(Boolean);
-    const products = await Product.find({ _id: { $in: ids }, isActive: true });
-    res.json(products);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
 // GET /api/products/:id
 router.get('/:id', async (req, res) => {
   try {

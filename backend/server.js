@@ -1,6 +1,7 @@
 const express  = require('express');
 const mongoose = require('mongoose');
 const cors     = require('cors');
+const cookieParser = require('cookie-parser');
 const dotenv   = require('dotenv');
 const path     = require('path');
 const fs       = require('fs');
@@ -21,7 +22,7 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your_super_secret_jwt
 const app = express();
 
 // ── Middleware ────────────────────────────────────────────
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000').split(',');
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:3001').split(',');
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -37,6 +38,7 @@ app.use('/api/products', require('./routes/products'));
 app.use('/api/orders',   require('./routes/orders'));
 app.use('/api/users',    require('./routes/users'));
 app.use('/api/cart',     require('./routes/cart'));
+app.use('/api/upload',   require('./routes/upload'));
 
 // Health check — useful to test the server is up
 app.get('/api/health', async (req, res) => {

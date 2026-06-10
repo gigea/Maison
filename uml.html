@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MAISON — UML Diagrams</title>
+<style>
+  :root {
+    --ink:    #1A1714;
+    --muted:  #6B6560;
+    --border: #DDD9D4;
+    --bg:     #F8F6F3;
+    --surface:#FFFFFF;
+    --accent: #C17F4A;
+    --accent2:#4A7FC1;
+    --green:  #3A7A5A;
+    --red:    #C14A4A;
+    --purple: #7A4AC1;
+    --mono:   'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    --sans:   'Inter', system-ui, sans-serif;
+    --serif:  'Georgia', serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--ink); font-size: 14px; }
+
+  /* ── Header ── */
+  .site-header { background: var(--ink); color: #fff; padding: 20px 40px; display: flex; align-items: center; justify-content: space-between; }
+  .site-header h1 { font-family: var(--serif); font-size: 1.4rem; letter-spacing: 0.08em; }
+  .site-header p { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 3px; }
+  .badge-count { background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 40px; }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 0; overflow-x: auto; background: var(--surface); border-bottom: 2px solid var(--border); padding: 0 40px; }
+  .tab { padding: 14px 20px; background: none; border: none; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all 0.15s; }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+
+  /* ── Panel ── */
+  .panel { display: none; padding: 40px; max-width: 1200px; margin: 0 auto; }
+  .panel.active { display: block; }
+  .panel-title { font-family: var(--serif); font-size: 1.6rem; margin-bottom: 6px; }
+  .panel-sub   { color: var(--muted); font-size: 13px; margin-bottom: 32px; line-height: 1.6; }
+
+  /* ── SVG diagrams ── */
+  .diagram-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 32px; overflow-x: auto; margin-bottom: 24px; }
+  .diagram-wrap svg { display: block; margin: 0 auto; }
+
+  /* ── UML shared styles ── */
+  .uml-box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; rx: 4; }
+  .uml-header { fill: #F0EDE8; stroke: var(--border); stroke-width: 1.5; }
+  .uml-title  { font-family: var(--serif); font-weight: bold; font-size: 13px; fill: var(--ink); }
+  .uml-stereo { font-size: 10px; fill: var(--muted); }
+  .uml-attr   { font-family: var(--mono); font-size: 11px; fill: var(--ink); }
+  .uml-method { font-family: var(--mono); font-size: 11px; fill: var(--accent2); }
+  .uml-line   { stroke: var(--border); stroke-width: 1; }
+  .arrow      { stroke: var(--muted); stroke-width: 1.5; fill: none; marker-end: url(#arr); }
+  .arrow-dash { stroke: var(--muted); stroke-width: 1.5; fill: none; stroke-dasharray: 6,3; marker-end: url(#arr); }
+  .arrow-comp { stroke: var(--ink); stroke-width: 2; fill: none; marker-end: url(#arr-comp); }
+  .assoc-label { font-size: 11px; fill: var(--muted); }
+  .note-box   { fill: #FFFBF0; stroke: #E8D97A; stroke-width: 1.5; }
+  .note-text  { font-size: 11px; fill: var(--muted); }
+
+  /* ── Sequence diagram ── */
+  .lifeline-head { fill: var(--ink); rx: 4; }
+  .lifeline-text { fill: #fff; font-weight: 600; font-size: 12px; }
+  .lifeline-line { stroke: var(--border); stroke-width: 1.5; stroke-dasharray: 6,4; }
+  .activation    { fill: rgba(193,127,74,0.18); stroke: var(--accent); stroke-width: 1.5; }
+  .msg-line      { stroke: var(--ink); stroke-width: 1.5; marker-end: url(#msg-arr); }
+  .ret-line      { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 5,3; marker-end: url(#msg-arr); }
+  .msg-label     { font-size: 11px; fill: var(--ink); font-weight: 500; }
+  .ret-label     { font-size: 10px; fill: var(--muted); }
+  .frame-box     { fill: none; stroke: var(--border); stroke-width: 1.5; rx: 4; }
+  .frame-label   { font-size: 11px; fill: var(--muted); font-weight: 600; }
+
+  /* ── State diagram ── */
+  .state-box    { fill: #EEF4FF; stroke: var(--accent2); stroke-width: 1.5; rx: 20; }
+  .state-label  { font-size: 13px; font-weight: 600; fill: var(--ink); }
+  .state-sub    { font-size: 10px; fill: var(--muted); }
+  .trans-line   { stroke: var(--muted); stroke-width: 1.5; fill: none; marker-end: url(#st-arr); }
+  .trans-label  { font-size: 10px; fill: var(--accent); font-weight: 500; }
+  .init-circle  { fill: var(--ink); }
+  .final-circle { fill: var(--ink); stroke: var(--ink); stroke-width: 3; }
+
+  /* ── UseCase ── */
+  .actor-head { fill: var(--surface); stroke: var(--ink); stroke-width: 1.8; }
+  .actor-label{ font-size: 12px; font-weight: 600; fill: var(--ink); }
+  .uc-ellipse { fill: #F0F6FF; stroke: var(--accent2); stroke-width: 1.5; }
+  .uc-label   { font-size: 11px; fill: var(--ink); font-weight: 500; }
+  .sys-box    { fill: none; stroke: var(--border); stroke-width: 2; stroke-dasharray: 8,4; rx: 8; }
+  .sys-label  { font-size: 13px; fill: var(--muted); font-weight: 600; letter-spacing: 0.06em; }
+  .uc-line    { stroke: var(--muted); stroke-width: 1.2; }
+  .inc-line   { stroke: var(--accent2); stroke-width: 1.2; stroke-dasharray: 4,3; marker-end: url(#uc-arr); }
+  .inc-label  { font-size: 10px; fill: var(--accent2); }
+
+  /* ── Activity ── */
+  .act-start  { fill: var(--ink); }
+  .act-end    { fill: var(--ink); stroke: var(--ink); stroke-width: 3; }
+  .act-box    { fill: #F0FFF6; stroke: var(--green); stroke-width: 1.5; rx: 24; }
+  .act-label  { font-size: 12px; fill: var(--ink); font-weight: 500; }
+  .act-diamond{ fill: #FFF8F0; stroke: var(--accent); stroke-width: 1.5; }
+  .act-line   { stroke: var(--muted); stroke-width: 1.5; fill: none; marker-end: url(#act-arr); }
+  .act-cond   { font-size: 10px; fill: var(--accent); font-weight: 600; }
+  .swim-line  { stroke: var(--border); stroke-width: 1.5; stroke-dasharray: 4,4; }
+  .swim-label { font-size: 11px; fill: var(--muted); font-weight: 600; letter-spacing: 0.06em; }
+  .fork-bar   { fill: var(--ink); }
+
+  /* ── Deployment ── */
+  .node-box   { fill: #F8F0FF; stroke: var(--purple); stroke-width: 1.5; rx: 4; }
+  .node-title { font-size: 13px; font-weight: 700; fill: var(--ink); }
+  .node-stereo{ font-size: 10px; fill: var(--purple); }
+  .artifact   { fill: #FFF8F0; stroke: var(--accent); stroke-width: 1.2; rx: 3; }
+  .artifact-t { font-size: 11px; fill: var(--ink); font-weight: 600; }
+  .artifact-s { font-size: 10px; fill: var(--muted); }
+  .dep-line   { stroke: var(--border); stroke-width: 1.5; stroke-dasharray: 5,3; marker-end: url(#dep-arr); }
+  .comm-line  { stroke: var(--accent2); stroke-width: 2; }
+
+  /* legend */
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 16px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .legend-dot  { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="site-header">
+  <div>
+    <h1>MAISON — UML Documentation</h1>
+    <p>Complete system diagrams for the Fashion E-Commerce platform</p>
+  </div>
+  <span class="badge-count">7 Diagrams</span>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="show(0)">1. Class</button>
+  <button class="tab" onclick="show(1)">2. Use Case</button>
+  <button class="tab" onclick="show(2)">3. Sequence — Checkout</button>
+  <button class="tab" onclick="show(3)">4. Sequence — Auth</button>
+  <button class="tab" onclick="show(4)">5. Activity — Order</button>
+  <button class="tab" onclick="show(5)">6. State — Order Status</button>
+  <button class="tab" onclick="show(6)">7. Component / Deployment</button>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PANEL 1 — CLASS DIAGRAM
+════════════════════════════════════════════════════ -->
+<div class="panel active" id="p0">
+  <div class="panel-title">Class Diagram</div>
+  <div class="panel-sub">MongoDB data models and their relationships. Embedded sub-documents are shown as nested classes with composition arrows.</div>
+  <div class="diagram-wrap">
+<svg width="1080" height="720" viewBox="0 0 1080 720" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0,10 3.5,0 7" fill="#6B6560"/>
+  </marker>
+  <marker id="arr-comp" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+    <polygon points="0 0,12 4,0 8" fill="#1A1714"/>
+  </marker>
+  <marker id="diam" markerWidth="12" markerHeight="8" refX="0" refY="4" orient="auto">
+    <polygon points="6 0,12 4,6 8,0 4" fill="none" stroke="#1A1714" stroke-width="1.5"/>
+  </marker>
+  <marker id="diam-fill" markerWidth="12" markerHeight="8" refX="0" refY="4" orient="auto">
+    <polygon points="6 0,12 4,6 8,0 4" fill="#1A1714"/>
+  </marker>
+</defs>
+
+<!-- ── USER ── -->
+<rect x="20" y="40" width="220" height="28" class="uml-header" rx="4" ry="0"/>
+<rect x="20" y="68" width="220" height="260" class="uml-box" rx="0" ry="4"/>
+<text x="130" y="30" text-anchor="middle" class="uml-stereo">«document»</text>
+<text x="130" y="59" text-anchor="middle" class="uml-title">User</text>
+<line x1="20" y1="130" x2="240" y2="130" class="uml-line"/>
+<line x1="20" y1="68" x2="240" y2="68" class="uml-line"/>
+<text x="30" y="85"  class="uml-attr">+ _id : ObjectId</text>
+<text x="30" y="100" class="uml-attr">+ name : String</text>
+<text x="30" y="115" class="uml-attr">+ email : String  «unique»</text>
+<text x="30" y="145" class="uml-attr">+ role : enum {user, admin}</text>
+<text x="30" y="160" class="uml-attr">+ avatar : String</text>
+<text x="30" y="175" class="uml-attr">+ wishlist : [ProductId]</text>
+<text x="30" y="190" class="uml-attr">+ addresses : [Address]</text>
+<text x="30" y="205" class="uml-attr">+ createdAt : Date</text>
+<text x="30" y="220" class="uml-attr">+ updatedAt : Date</text>
+<line x1="20" y1="228" x2="240" y2="228" class="uml-line"/>
+<text x="30" y="243" class="uml-method">+ matchPassword(pwd) : Boolean</text>
+<text x="30" y="258" class="uml-method">+ toJSON() : Object</text>
+<text x="30" y="273" class="uml-method">«pre-save» hashPassword()</text>
+
+<!-- ── ADDRESS (embedded) ── -->
+<rect x="20" y="360" width="200" height="28" class="uml-header" rx="4" ry="0"/>
+<rect x="20" y="388" width="200" height="130" class="uml-box" rx="0" ry="4"/>
+<text x="120" y="350" text-anchor="middle" class="uml-stereo">«embedded»</text>
+<text x="120" y="379" text-anchor="middle" class="uml-title">Address</text>
+<text x="30" y="404" class="uml-attr">+ label : String</text>
+<text x="30" y="419" class="uml-attr">+ street : String</text>
+<text x="30" y="434" class="uml-attr">+ city : String</text>
+<text x="30" y="449" class="uml-attr">+ zip : String</text>
+<text x="30" y="464" class="uml-attr">+ country : String</text>
+<text x="30" y="479" class="uml-attr">+ isDefault : Boolean</text>
+<!-- composition User->Address -->
+<line x1="120" y1="328" x2="120" y2="360" stroke="#1A1714" stroke-width="1.8" marker-start="url(#diam-fill)" marker-end="url(#arr-comp)"/>
+<text x="128" y="348" class="assoc-label">1..*</text>
+
+<!-- ── PRODUCT ── -->
+<rect x="400" y="40" width="240" height="28" class="uml-header" rx="4" ry="0"/>
+<rect x="400" y="68" width="240" height="330" class="uml-box" rx="0" ry="4"/>
+<text x="520" y="30" text-anchor="middle" class="uml-stereo">«document»</text>
+<text x="520" y="59" text-anchor="middle" class="uml-title">Product</text>
+<line x1="400" y1="68" x2="640" y2="68" class="uml-line"/>
+<line x1="400" y1="175" x2="640" y2="175" class="uml-line"/>
+<text x="410" y="85"  class="uml-attr">+ _id : ObjectId</text>
+<text x="410" y="100" class="uml-attr">+ name : String</text>
+<text x="410" y="115" class="uml-attr">+ description : String</text>
+<text x="410" y="130" class="uml-attr">+ price : Number</text>
+<text x="410" y="145" class="uml-attr">+ salePrice : Number</text>
+<text x="410" y="160" class="uml-attr">+ category : enum</text>
+<text x="410" y="190" class="uml-attr">+ gender : enum</text>
+<text x="410" y="205" class="uml-attr">+ sizes : [String]</text>
+<text x="410" y="220" class="uml-attr">+ colors : [Color]</text>
+<text x="410" y="235" class="uml-attr">+ images : [String]</text>
+<text x="410" y="250" class="uml-attr">+ stock : Number</text>
+<text x="410" y="265" class="uml-attr">+ brand : String</text>
+<text x="410" y="280" class="uml-attr">+ tags : [String]</text>
+<text x="410" y="295" class="uml-attr">+ reviews : [Review]</text>
+<text x="410" y="310" class="uml-attr">+ rating : Number</text>
+<text x="410" y="325" class="uml-attr">+ featured : Boolean</text>
+<text x="410" y="340" class="uml-attr">+ isActive : Boolean</text>
+<line x1="400" y1="348" x2="640" y2="348" class="uml-line"/>
+<text x="410" y="363" class="uml-method">«pre-save» calcRating()</text>
+<text x="410" y="378" class="uml-method">«index» text search</text>
+
+<!-- ── REVIEW (embedded) ── -->
+<rect x="400" y="450" width="200" height="28" class="uml-header" rx="4" ry="0"/>
+<rect x="400" y="478" width="200" height="115" class="uml-box" rx="0" ry="4"/>
+<text x="500" y="440" text-anchor="middle" class="uml-stereo">«embedded»</text>
+<text x="500" y="469" text-anchor="middle" class="uml-title">Review</text>
+<text x="410" y="494" class="uml-attr">+ _id : ObjectId</text>
+<text x="410" y="509" class="uml-attr">+ user : UserId</text>
+<text x="410" y="524" class="uml-attr">+ name : String</text>
+<text x="410" y="539" class="uml-attr">+ rating : Number (1-5)</text>
+<text x="410" y="554" class="uml-attr">+ comment : String</text>
+<text x="410" y="569" class="uml-attr">+ createdAt : Date</text>
+<!-- composition Product->Review -->
+<line x1="500" y1="398" x2="500" y2="450" stroke="#1A1714" stroke-width="1.8" marker-start="url(#diam-fill)" marker-end="url(#arr-comp)"/>
+<text x="508" y="428" class="assoc-label">0..*</text>
+
+<!-- ── COLOR (embedded) ── -->
+<rect x="660" y="40" width="170" height="28" class="uml-header" rx="4" ry="0"/>
+<rect x="660" y="68" width="170" height="75" class="uml-box" rx="0" ry="4"/>
+<text x="745" y="30" text-anchor="middle" class="uml-stereo">«embedded»</text>
+<text x="745" y="59" text-anchor="middle" class="uml-title">Color</text>
+<text x="670" y="85" class="uml-attr">+ name : String</text>
+<text x="670" y="100" class="uml-attr">+ hex : String</text>
+<!-- composition -->
+<line x1="640" y1="220" x2="660" y2="100" stroke="#1A1714" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-comp)"/>
+<text x="648" y="180" class="assoc-label">0..*</text>
+
+<!-- ── ORDER ── -->
+<rect x="780" y="40" width="270" height="28" class="uml-header" rx="4" ry="0"/>
+<rect x="780" y="68" width="270" height="350" class="uml-box" rx="0" ry="4"/>
+<text x="915" y="30" text-anchor="middle" class="uml-stereo">«document»</text>
+<text x="915" y="59" text-anchor="middle" class="uml-title">Order</text>
+<line x1="780" y1="68" x2="1050" y2="68" class="uml-line"/>
+<line x1="780" y1="210" x2="1050" y2="210" class="uml-line"/>
+<text x="790" y="85"  class="uml-attr">+ _id : ObjectId</text>
+<text x="790" y="100" class="uml-attr">+ user : UserId  «ref»</text>
+<text x="790" y="115" class="uml-attr">+ items : [OrderItem]</text>
+<text x="790" y="130" class="uml-attr">+ shippingAddress : Address</text>
+<text x="790" y="145" class="uml-attr">+ paymentMethod : String</text>
+<text x="790" y="160" class="uml-attr">+ itemsPrice : Number</text>
+<text x="790" y="175" class="uml-attr">+ shippingPrice : Number</text>
+<text x="790" y="190" class="uml-attr">+ taxPrice : Number</text>
+<text x="790" y="225" class="uml-attr">+ totalPrice : Number</text>
+<text x="790" y="240" class="uml-attr">+ status : enum</text>
+<text x="790" y="255" class="uml-attr">+ isPaid : Boolean</text>
+<text x="790" y="270" class="uml-attr">+ paidAt : Date</text>
+<text x="790" y="285" class="uml-attr">+ isDelivered : Boolean</text>
+<text x="790" y="300" class="uml-attr">+ deliveredAt : Date</text>
+<text x="790" y="315" class="uml-attr">+ createdAt : Date</text>
+<line x1="780" y1="323" x2="1050" y2="323" class="uml-line"/>
+<text x="790" y="340" class="uml-method">«status enum»</text>
+<text x="790" y="355" class="uml-method">pending | processing</text>
+<text x="790" y="370" class="uml-method">shipped | delivered | cancelled</text>
+
+<!-- ── ORDER ITEM (embedded) ── -->
+<rect x="780" y="460" width="260" height="28" class="uml-header" rx="4" ry="0"/>
+<rect x="780" y="488" width="260" height="130" class="uml-box" rx="0" ry="4"/>
+<text x="910" y="450" text-anchor="middle" class="uml-stereo">«embedded»</text>
+<text x="910" y="479" text-anchor="middle" class="uml-title">OrderItem</text>
+<text x="790" y="504" class="uml-attr">+ product : ProductId  «ref»</text>
+<text x="790" y="519" class="uml-attr">+ name : String</text>
+<text x="790" y="534" class="uml-attr">+ image : String</text>
+<text x="790" y="549" class="uml-attr">+ price : Number</text>
+<text x="790" y="564" class="uml-attr">+ size : String</text>
+<text x="790" y="579" class="uml-attr">+ color : String</text>
+<text x="790" y="594" class="uml-attr">+ quantity : Number</text>
+<!-- composition Order->OrderItem -->
+<line x1="910" y1="418" x2="910" y2="460" stroke="#1A1714" stroke-width="1.8" marker-start="url(#diam-fill)" marker-end="url(#arr-comp)"/>
+<text x="918" y="443" class="assoc-label">1..*</text>
+
+<!-- ── ASSOCIATIONS ── -->
+<!-- User places Order -->
+<path d="M240 200 Q330 200 780 200" class="arrow" stroke="#6B6560" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+<text x="480" y="192" class="assoc-label">places  0..*</text>
+<!-- User reviews Product (via Review.user) -->
+<path d="M240 160 Q320 160 400 295" class="arrow-dash"/>
+<text x="290" y="215" class="assoc-label">reviews</text>
+<!-- Product ref in OrderItem -->
+<path d="M640 300 Q720 490 780 535" stroke="#6B6560" stroke-width="1.2" stroke-dasharray="4,3" fill="none" marker-end="url(#arr)"/>
+<text x="700" y="430" class="assoc-label">«ref»</text>
+
+<!-- legend -->
+<rect x="22" y="600" width="12" height="12" fill="#1A1714" rx="2"/>
+<text x="38" y="611" class="assoc-label">Composition (embedded)</text>
+<rect x="170" y="600" width="12" height="12" fill="none" stroke="#6B6560" stroke-width="1.5" stroke-dasharray="4,2" rx="2"/>
+<text x="186" y="611" class="assoc-label">Association (reference)</text>
+<rect x="340" y="600" width="30" height="12" fill="#F0EDE8" stroke="#DDD9D4" stroke-width="1.2" rx="2"/>
+<text x="374" y="611" class="assoc-label">«document» = MongoDB collection</text>
+</svg>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PANEL 2 — USE CASE
+════════════════════════════════════════════════════ -->
+<div class="panel" id="p1">
+  <div class="panel-title">Use Case Diagram</div>
+  <div class="panel-sub">System actors and their interactions. Guest, Registered User, and Admin roles. Dashed «include» arrows show mandatory sub-cases.</div>
+  <div class="diagram-wrap">
+<svg width="1060" height="680" viewBox="0 0 1060 680" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="uc-arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+    <polygon points="0 0,9 3.5,0 7" fill="#4A7FC1"/>
+  </marker>
+</defs>
+
+<!-- System boundary -->
+<rect x="160" y="20" width="730" height="640" class="sys-box"/>
+<text x="525" y="46" text-anchor="middle" class="sys-label">MAISON E-COMMERCE SYSTEM</text>
+
+<!-- ── GUEST actor ── -->
+<circle cx="60" cy="160" r="18" class="actor-head"/>
+<line x1="60" y1="178" x2="60" y2="220" stroke="#1A1714" stroke-width="1.8"/>
+<line x1="30" y1="195" x2="90" y2="195" stroke="#1A1714" stroke-width="1.8"/>
+<line x1="60" y1="220" x2="35" y2="250" stroke="#1A1714" stroke-width="1.8"/>
+<line x1="60" y1="220" x2="85" y2="250" stroke="#1A1714" stroke-width="1.8"/>
+<text x="60" y="268" text-anchor="middle" class="actor-label">Guest</text>
+
+<!-- ── USER actor ── -->
+<circle cx="60" cy="380" r="18" class="actor-head"/>
+<line x1="60" y1="398" x2="60" y2="440" stroke="#1A1714" stroke-width="1.8"/>
+<line x1="30" y1="415" x2="90" y2="415" stroke="#1A1714" stroke-width="1.8"/>
+<line x1="60" y1="440" x2="35" y2="470" stroke="#1A1714" stroke-width="1.8"/>
+<line x1="60" y1="440" x2="85" y2="470" stroke="#1A1714" stroke-width="1.8"/>
+<text x="60" y="488" text-anchor="middle" class="actor-label">User</text>
+<text x="60" y="502" text-anchor="middle" style="font-size:10px;fill:var(--muted)">«extends Guest»</text>
+
+<!-- ── ADMIN actor ── -->
+<circle cx="1000" cy="340" r="18" class="actor-head"/>
+<line x1="1000" y1="358" x2="1000" y2="400" stroke="#1A1714" stroke-width="1.8"/>
+<line x1="970" y1="375" x2="1030" y2="375" stroke="#1A1714" stroke-width="1.8"/>
+<line x1="1000" y1="400" x2="975" y2="430" stroke="#1A1714" stroke-width="1.8"/>
+<line x1="1000" y1="400" x2="1025" y2="430" stroke="#1A1714" stroke-width="1.8"/>
+<text x="1000" y="448" text-anchor="middle" class="actor-label">Admin</text>
+
+<!-- ── USE CASES ── Guest -->
+<ellipse cx="310" cy="110" rx="110" ry="26" class="uc-ellipse"/>
+<text x="310" y="114" text-anchor="middle" class="uc-label">Browse Products</text>
+<ellipse cx="310" cy="175" rx="110" ry="26" class="uc-ellipse"/>
+<text x="310" y="179" text-anchor="middle" class="uc-label">Search &amp; Filter Products</text>
+<ellipse cx="310" cy="240" rx="110" ry="26" class="uc-ellipse"/>
+<text x="310" y="244" text-anchor="middle" class="uc-label">View Product Detail</text>
+<ellipse cx="310" cy="305" rx="110" ry="26" class="uc-ellipse"/>
+<text x="310" y="309" text-anchor="middle" class="uc-label">Add to Cart</text>
+<ellipse cx="310" cy="370" rx="110" ry="26" class="uc-ellipse"/>
+<text x="310" y="374" text-anchor="middle" class="uc-label">Register / Login</text>
+
+<!-- ── USE CASES ── User -->
+<ellipse cx="560" cy="175" rx="110" ry="26" class="uc-ellipse"/>
+<text x="560" y="179" text-anchor="middle" class="uc-label">Checkout &amp; Place Order</text>
+<ellipse cx="560" cy="240" rx="110" ry="26" class="uc-ellipse"/>
+<text x="560" y="244" text-anchor="middle" class="uc-label">View Order History</text>
+<ellipse cx="560" cy="305" rx="110" ry="26" class="uc-ellipse"/>
+<text x="560" y="309" text-anchor="middle" class="uc-label">Add to Wishlist</text>
+<ellipse cx="560" cy="370" rx="110" ry="26" class="uc-ellipse"/>
+<text x="560" y="374" text-anchor="middle" class="uc-label">Write a Review</text>
+<ellipse cx="560" cy="435" rx="110" ry="26" class="uc-ellipse"/>
+<text x="560" y="439" text-anchor="middle" class="uc-label">Update Profile</text>
+
+<!-- ── USE CASES ── Admin -->
+<ellipse cx="810" cy="175" rx="110" ry="26" class="uc-ellipse"/>
+<text x="810" y="179" text-anchor="middle" class="uc-label">Add / Edit Products</text>
+<ellipse cx="810" cy="240" rx="110" ry="26" class="uc-ellipse"/>
+<text x="810" y="244" text-anchor="middle" class="uc-label">Delete Product</text>
+<ellipse cx="810" cy="305" rx="110" ry="26" class="uc-ellipse"/>
+<text x="810" y="309" text-anchor="middle" class="uc-label">Manage Orders</text>
+<ellipse cx="810" cy="370" rx="110" ry="26" class="uc-ellipse"/>
+<text x="810" y="374" text-anchor="middle" class="uc-label">Update Order Status</text>
+<ellipse cx="810" cy="435" rx="110" ry="26" class="uc-ellipse"/>
+<text x="810" y="439" text-anchor="middle" class="uc-label">Manage Users</text>
+<ellipse cx="810" cy="500" rx="110" ry="26" class="uc-ellipse"/>
+<text x="810" y="504" text-anchor="middle" class="uc-label">Upload Product Images</text>
+
+<!-- ── include: Checkout includes Login ── -->
+<line x1="450" y1="175" x2="420" y2="370" class="inc-line"/>
+<text x="408" y="260" class="inc-label">«include»</text>
+
+<!-- ── Guest lines ── -->
+<line x1="90" y1="152" x2="200" y2="115" class="uc-line"/>
+<line x1="90" y1="158" x2="200" y2="176" class="uc-line"/>
+<line x1="90" y1="164" x2="200" y2="240" class="uc-line"/>
+<line x1="90" y1="168" x2="200" y2="305" class="uc-line"/>
+<line x1="90" y1="175" x2="200" y2="370" class="uc-line"/>
+
+<!-- ── User lines ── -->
+<line x1="90" y1="375" x2="450" y2="180" class="uc-line"/>
+<line x1="90" y1="380" x2="450" y2="243" class="uc-line"/>
+<line x1="90" y1="383" x2="450" y2="307" class="uc-line"/>
+<line x1="90" y1="386" x2="450" y2="372" class="uc-line"/>
+<line x1="90" y1="388" x2="450" y2="436" class="uc-line"/>
+
+<!-- ── Admin lines ── -->
+<line x1="970" y1="345" x2="920" y2="180" class="uc-line"/>
+<line x1="972" y1="348" x2="920" y2="243" class="uc-line"/>
+<line x1="974" y1="352" x2="920" y2="307" class="uc-line"/>
+<line x1="975" y1="356" x2="920" y2="372" class="uc-line"/>
+<line x1="976" y1="360" x2="920" y2="436" class="uc-line"/>
+<line x1="977" y1="364" x2="920" y2="501" class="uc-line"/>
+</svg>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PANEL 3 — SEQUENCE: CHECKOUT
+════════════════════════════════════════════════════ -->
+<div class="panel" id="p2">
+  <div class="panel-title">Sequence Diagram — Checkout Flow</div>
+  <div class="panel-sub">End-to-end message flow when a logged-in user completes a purchase, from clicking Checkout to receiving an Order ID.</div>
+  <div class="diagram-wrap">
+<svg width="1020" height="640" viewBox="0 0 1020 640" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="msg-arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+    <polygon points="0 0,9 3.5,0 7" fill="#1A1714"/>
+  </marker>
+</defs>
+
+<!-- Lifeline heads -->
+<rect x="30"  y="20" width="120" height="36" class="lifeline-head" rx="4"/>
+<text x="90"  y="44" text-anchor="middle" class="lifeline-text">Browser</text>
+<rect x="210" y="20" width="120" height="36" class="lifeline-head" rx="4"/>
+<text x="270" y="44" text-anchor="middle" class="lifeline-text">React App</text>
+<rect x="390" y="20" width="120" height="36" class="lifeline-head" rx="4"/>
+<text x="450" y="44" text-anchor="middle" class="lifeline-text">CartContext</text>
+<rect x="570" y="20" width="120" height="36" class="lifeline-head" rx="4"/>
+<text x="630" y="44" text-anchor="middle" class="lifeline-text">Express API</text>
+<rect x="750" y="20" width="120" height="36" class="lifeline-head" rx="4"/>
+<text x="810" y="44" text-anchor="middle" class="lifeline-text">JWT Auth</text>
+<rect x="890" y="20" width="110" height="36" class="lifeline-head" rx="4"/>
+<text x="945" y="44" text-anchor="middle" class="lifeline-text">MongoDB</text>
+
+<!-- Lifelines -->
+<line x1="90"  y1="56" x2="90"  y2="630" class="lifeline-line"/>
+<line x1="270" y1="56" x2="270" y2="630" class="lifeline-line"/>
+<line x1="450" y1="56" x2="450" y2="630" class="lifeline-line"/>
+<line x1="630" y1="56" x2="630" y2="630" class="lifeline-line"/>
+<line x1="810" y1="56" x2="810" y2="630" class="lifeline-line"/>
+<line x1="945" y1="56" x2="945" y2="630" class="lifeline-line"/>
+
+<!-- Activations -->
+<rect x="84"  y="80"  width="12" height="530" class="activation"/>
+<rect x="264" y="90"  width="12" height="510" class="activation"/>
+<rect x="444" y="120" width="12" height="80"  class="activation"/>
+<rect x="624" y="210" width="12" height="340" class="activation"/>
+<rect x="804" y="220" width="12" height="60"  class="activation"/>
+<rect x="939" y="300" width="12" height="240" class="activation"/>
+
+<!-- Messages -->
+<line x1="96"  y1="90"  x2="264" y2="90"  class="msg-line"/>
+<text x="170" y="85" text-anchor="middle" class="msg-label">Click Checkout</text>
+
+<line x1="270" y1="120" x2="450" y2="120" class="msg-line"/>
+<text x="360" y="115" text-anchor="middle" class="msg-label">getCartItems()</text>
+
+<line x1="450" y1="145" x2="270" y2="145" class="ret-line"/>
+<text x="360" y="140" text-anchor="middle" class="ret-label">items, subtotal</text>
+
+<line x1="270" y1="175" x2="90"  y2="175" class="ret-line"/>
+<text x="180" y="170" text-anchor="middle" class="ret-label">render Checkout page</text>
+
+<line x1="96"  y1="210" x2="264" y2="210" class="msg-line"/>
+<text x="180" y="205" text-anchor="middle" class="msg-label">submit shippingAddress + payment</text>
+
+<line x1="270" y1="240" x2="630" y2="240" class="msg-line"/>
+<text x="450" y="235" text-anchor="middle" class="msg-label">POST /api/orders  Bearer {token}</text>
+
+<line x1="630" y1="268" x2="810" y2="268" class="msg-line"/>
+<text x="720" y="263" text-anchor="middle" class="msg-label">verify JWT</text>
+
+<line x1="810" y1="292" x2="630" y2="292" class="ret-line"/>
+<text x="720" y="287" text-anchor="middle" class="ret-label">userId decoded</text>
+
+<line x1="630" y1="320" x2="945" y2="320" class="msg-line"/>
+<text x="790" y="315" text-anchor="middle" class="msg-label">Order.create({user, items, …})</text>
+
+<line x1="945" y1="350" x2="630" y2="350" class="ret-line"/>
+<text x="790" y="345" text-anchor="middle" class="ret-label">saved order doc</text>
+
+<!-- alt: stock check -->
+<rect x="615" y="370" width="340" height="60" fill="none" stroke="#DDD9D4" stroke-width="1.2" rx="3"/>
+<text x="625" y="386" class="frame-label">alt [stock available]</text>
+<line x1="630" y1="400" x2="945" y2="400" class="msg-line"/>
+<text x="790" y="395" text-anchor="middle" class="msg-label">Product.updateStock(-qty)</text>
+
+<line x1="630" y1="450" x2="270" y2="450" class="ret-line"/>
+<text x="450" y="445" text-anchor="middle" class="ret-label">201 { order._id }</text>
+
+<line x1="270" y1="480" x2="450" y2="480" class="msg-line"/>
+<text x="360" y="475" text-anchor="middle" class="msg-label">clearCart()</text>
+
+<line x1="270" y1="510" x2="90" y2="510" class="ret-line"/>
+<text x="180" y="505" text-anchor="middle" class="ret-label">navigate /orders/{id}</text>
+
+<line x1="96"  y1="540" x2="264" y2="540" class="msg-line"/>
+<text x="180" y="535" text-anchor="middle" class="msg-label">GET /api/orders/{id}</text>
+
+<line x1="270" y1="570" x2="90" y2="570" class="ret-line"/>
+<text x="180" y="565" text-anchor="middle" class="ret-label">render OrderDetail page</text>
+</svg>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PANEL 4 — SEQUENCE: AUTH
+════════════════════════════════════════════════════ -->
+<div class="panel" id="p3">
+  <div class="panel-title">Sequence Diagram — Authentication Flow</div>
+  <div class="panel-sub">Login and subsequent protected API calls showing JWT issuance, storage in localStorage, and middleware verification.</div>
+  <div class="diagram-wrap">
+<svg width="880" height="580" viewBox="0 0 880 580" xmlns="http://www.w3.org/2000/svg">
+
+<!-- Lifeline heads -->
+<rect x="30"  y="20" width="120" height="36" class="lifeline-head" rx="4"/>
+<text x="90"  y="44" text-anchor="middle" class="lifeline-text">User</text>
+<rect x="200" y="20" width="130" height="36" class="lifeline-head" rx="4"/>
+<text x="265" y="44" text-anchor="middle" class="lifeline-text">Auth Page</text>
+<rect x="380" y="20" width="130" height="36" class="lifeline-head" rx="4"/>
+<text x="445" y="44" text-anchor="middle" class="lifeline-text">AuthContext</text>
+<rect x="560" y="20" width="130" height="36" class="lifeline-head" rx="4"/>
+<text x="625" y="44" text-anchor="middle" class="lifeline-text">Express /auth</text>
+<rect x="740" y="20" width="110" height="36" class="lifeline-head" rx="4"/>
+<text x="795" y="44" text-anchor="middle" class="lifeline-text">MongoDB</text>
+
+<!-- Lifelines -->
+<line x1="90"  y1="56" x2="90"  y2="575" class="lifeline-line"/>
+<line x1="265" y1="56" x2="265" y2="575" class="lifeline-line"/>
+<line x1="445" y1="56" x2="445" y2="575" class="lifeline-line"/>
+<line x1="625" y1="56" x2="625" y2="575" class="lifeline-line"/>
+<line x1="795" y1="56" x2="795" y2="575" class="lifeline-line"/>
+
+<!-- Activations -->
+<rect x="84"  y="80"  width="12" height="460" class="activation"/>
+<rect x="259" y="90"  width="12" height="440" class="activation"/>
+<rect x="439" y="130" width="12" height="280" class="activation"/>
+<rect x="619" y="160" width="12" height="180" class="activation"/>
+<rect x="789" y="175" width="12" height="130" class="activation"/>
+
+<!-- Step 1: user submits form -->
+<line x1="96"  y1="90"  x2="259" y2="90"  class="msg-line"/>
+<text x="175" y="85" text-anchor="middle" class="msg-label">submit {email, password}</text>
+
+<line x1="265" y1="130" x2="445" y2="130" class="msg-line"/>
+<text x="355" y="125" text-anchor="middle" class="msg-label">login(email, password)</text>
+
+<line x1="445" y1="160" x2="625" y2="160" class="msg-line"/>
+<text x="535" y="155" text-anchor="middle" class="msg-label">POST /api/auth/login</text>
+
+<line x1="625" y1="190" x2="795" y2="190" class="msg-line"/>
+<text x="710" y="185" text-anchor="middle" class="msg-label">User.findOne({email})</text>
+
+<line x1="795" y1="215" x2="625" y2="215" class="ret-line"/>
+<text x="710" y="210" text-anchor="middle" class="ret-label">user document</text>
+
+<line x1="625" y1="245" x2="795" y2="245" class="msg-line"/>
+<text x="710" y="240" text-anchor="middle" class="msg-label">bcrypt.compare(pwd, hash)</text>
+
+<line x1="795" y1="272" x2="625" y2="272" class="ret-line"/>
+<text x="710" y="267" text-anchor="middle" class="ret-label">true / false</text>
+
+<!-- alt: valid credentials -->
+<rect x="430" y="288" width="380" height="70" fill="none" stroke="#DDD9D4" stroke-width="1.2" rx="3"/>
+<text x="440" y="304" class="frame-label">alt [valid credentials]</text>
+<line x1="625" y1="320" x2="445" y2="320" class="ret-line"/>
+<text x="535" y="315" text-anchor="middle" class="ret-label">200 { user, JWT token }</text>
+
+<line x1="445" y1="378" x2="265" y2="378" class="ret-line"/>
+<text x="355" y="373" text-anchor="middle" class="ret-label">setUser(), setToken()</text>
+
+<text x="275" y="410" class="msg-label" style="font-size:10px;fill:var(--muted)">localStorage.setItem('token', jwt)</text>
+
+<line x1="265" y1="430" x2="90"  y2="430" class="ret-line"/>
+<text x="175" y="425" text-anchor="middle" class="ret-label">navigate to redirect URL</text>
+
+<!-- Step 2: protected request -->
+<text x="90" y="465" text-anchor="middle" style="font-size:11px;fill:var(--muted)">— later —</text>
+<line x1="96"  y1="478" x2="445" y2="478" class="msg-line"/>
+<text x="270" y="473" text-anchor="middle" class="msg-label">protected action</text>
+
+<line x1="445" y1="500" x2="625" y2="500" class="msg-line"/>
+<text x="535" y="495" text-anchor="middle" class="msg-label">GET /api/... Authorization: Bearer {token}</text>
+
+<line x1="625" y1="525" x2="445" y2="525" class="ret-line"/>
+<text x="535" y="520" text-anchor="middle" class="ret-label">jwt.verify() → req.user → 200 OK</text>
+</svg>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PANEL 5 — ACTIVITY: ORDER
+════════════════════════════════════════════════════ -->
+<div class="panel" id="p4">
+  <div class="panel-title">Activity Diagram — Place an Order</div>
+  <div class="panel-sub">Complete activity flow from product selection through payment, with swimlanes for Customer, System, and Admin.</div>
+  <div class="diagram-wrap">
+<svg width="900" height="760" viewBox="0 0 900 760" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="act-arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+    <polygon points="0 0,9 3.5,0 7" fill="#6B6560"/>
+  </marker>
+  <marker id="st-arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+    <polygon points="0 0,9 3.5,0 7" fill="#6B6560"/>
+  </marker>
+</defs>
+
+<!-- Swimlane borders -->
+<rect x="10" y="10"  width="270" height="740" fill="#FAFAF8" stroke="#DDD9D4" stroke-width="1" rx="6"/>
+<rect x="290" y="10" width="300" height="740" fill="#F5F3FF" stroke="#DDD9D4" stroke-width="1" rx="6"/>
+<rect x="600" y="10" width="280" height="740" fill="#F3FFF5" stroke="#DDD9D4" stroke-width="1" rx="6"/>
+
+<!-- Swimlane labels -->
+<text x="145" y="36" text-anchor="middle" class="swim-label">CUSTOMER</text>
+<text x="440" y="36" text-anchor="middle" class="swim-label">SYSTEM</text>
+<text x="740" y="36" text-anchor="middle" class="swim-label">ADMIN</text>
+
+<!-- Start -->
+<circle cx="145" cy="68" r="12" class="act-start"/>
+<line x1="145" y1="80" x2="145" y2="110" class="act-line"/>
+
+<!-- Browse products -->
+<rect x="50" y="110" width="190" height="38" class="act-box" rx="19"/>
+<text x="145" y="134" text-anchor="middle" class="act-label">Browse Products</text>
+<line x1="145" y1="148" x2="145" y2="178" class="act-line"/>
+
+<!-- Select product -->
+<rect x="50" y="178" width="190" height="38" class="act-box" rx="19"/>
+<text x="145" y="202" text-anchor="middle" class="act-label">Select Product + Size</text>
+<line x1="145" y1="216" x2="145" y2="246" class="act-line"/>
+
+<!-- Add to Cart -->
+<rect x="50" y="246" width="190" height="38" class="act-box" rx="19"/>
+<text x="145" y="270" text-anchor="middle" class="act-label">Add to Cart</text>
+<line x1="145" y1="284" x2="440" y2="284" class="act-line"/>
+
+<!-- Update CartContext -->
+<rect x="340" y="265" width="200" height="38" class="act-box" rx="19"/>
+<text x="440" y="289" text-anchor="middle" class="act-label">Update CartContext</text>
+<line x1="440" y1="303" x2="145" y2="340" class="act-line"/>
+
+<!-- Proceed to Checkout -->
+<rect x="50" y="340" width="190" height="38" class="act-box" rx="19"/>
+<text x="145" y="364" text-anchor="middle" class="act-label">Proceed to Checkout</text>
+<line x1="145" y1="378" x2="440" y2="378" class="act-line"/>
+
+<!-- Logged in? diamond -->
+<polygon points="440,398 470,428 440,458 410,428" class="act-diamond"/>
+<text x="440" y="433" text-anchor="middle" style="font-size:10px;fill:var(--ink);font-weight:600;">Logged in?</text>
+<text x="480" y="425" class="act-cond">yes</text>
+<text x="370" y="490" class="act-cond">no → login</text>
+<line x1="440" y1="458" x2="440" y2="490" class="act-line"/>
+<!-- no branch loops to customer -->
+<path d="M 410 428 Q 280 428 280 490 Q 280 550 145 550" class="act-line" stroke-dasharray="4,3"/>
+
+<!-- Enter Shipping -->
+<rect x="340" y="490" width="200" height="38" class="act-box" rx="19"/>
+<text x="440" y="514" text-anchor="middle" class="act-label">Enter Shipping Details</text>
+<line x1="440" y1="528" x2="440" y2="558" class="act-line"/>
+
+<!-- Select Payment -->
+<rect x="340" y="558" width="200" height="38" class="act-box" rx="19"/>
+<text x="440" y="582" text-anchor="middle" class="act-label">Select Payment Method</text>
+<line x1="440" y1="596" x2="440" y2="626" class="act-line"/>
+
+<!-- POST /api/orders -->
+<rect x="340" y="626" width="200" height="38" class="act-box" rx="19"/>
+<text x="440" y="650" text-anchor="middle" class="act-label">POST /api/orders</text>
+<line x1="440" y1="664" x2="740" y2="664" class="act-line"/>
+
+<!-- Save Order to DB -->
+<rect x="640" y="645" width="200" height="38" class="act-box" rx="19"/>
+<text x="740" y="669" text-anchor="middle" class="act-label">Save Order to DB</text>
+<line x1="740" y1="683" x2="440" y2="700" class="act-line"/>
+
+<!-- Clear cart + navigate -->
+<rect x="340" y="700" width="200" height="38" class="act-box" rx="19"/>
+<text x="440" y="724" text-anchor="middle" class="act-label">Clear Cart + Navigate</text>
+<line x1="440" y1="738" x2="145" y2="738" class="act-line"/>
+
+<!-- End -->
+<circle cx="145" cy="738" r="10" class="act-end" style="fill:none;stroke:#1A1714;stroke-width:3;"/>
+<circle cx="145" cy="738" r="6" class="act-start"/>
+</svg>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PANEL 6 — STATE: ORDER STATUS
+════════════════════════════════════════════════════ -->
+<div class="panel" id="p5">
+  <div class="panel-title">State Diagram — Order Lifecycle</div>
+  <div class="panel-sub">All possible states an Order document can be in, with guard conditions and transition triggers.</div>
+  <div class="diagram-wrap">
+<svg width="860" height="560" viewBox="0 0 860 560" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="sa" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+    <polygon points="0 0,9 3.5,0 7" fill="#6B6560"/>
+  </marker>
+</defs>
+
+<!-- PENDING -->
+<rect x="60" y="190" width="150" height="70" class="state-box"/>
+<text x="135" y="221" text-anchor="middle" class="state-label">pending</text>
+<line x1="60" y1="232" x2="210" y2="232" stroke="#4A7FC1" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="135" y="248" text-anchor="middle" class="state-sub">isPaid: false</text>
+
+<!-- PROCESSING -->
+<rect x="300" y="80" width="150" height="70" class="state-box"/>
+<text x="375" y="111" text-anchor="middle" class="state-label">processing</text>
+<line x1="300" y1="122" x2="450" y2="122" stroke="#4A7FC1" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="375" y="138" text-anchor="middle" class="state-sub">payment confirmed</text>
+
+<!-- SHIPPED -->
+<rect x="540" y="190" width="150" height="70" class="state-box"/>
+<text x="615" y="221" text-anchor="middle" class="state-label">shipped</text>
+<line x1="540" y1="232" x2="690" y2="232" stroke="#4A7FC1" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="615" y="248" text-anchor="middle" class="state-sub">trackingNumber set</text>
+
+<!-- DELIVERED -->
+<rect x="300" y="360" width="150" height="80" class="state-box" style="fill:#E8F5E9;stroke:#3A7A5A;"/>
+<text x="375" y="391" text-anchor="middle" class="state-label" style="fill:#1B5E20;">delivered</text>
+<line x1="300" y1="403" x2="450" y2="403" stroke="#3A7A5A" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="375" y="416" text-anchor="middle" class="state-sub">isDelivered: true</text>
+<text x="375" y="430" text-anchor="middle" class="state-sub">deliveredAt: Date</text>
+
+<!-- CANCELLED -->
+<rect x="660" y="380" width="150" height="70" class="state-box" style="fill:#FFEBEE;stroke:#C14A4A;"/>
+<text x="735" y="412" text-anchor="middle" class="state-label" style="fill:#B71C1C;">cancelled</text>
+<line x1="660" y1="423" x2="810" y2="423" stroke="#C14A4A" stroke-width="1" stroke-dasharray="3,2"/>
+<text x="735" y="438" text-anchor="middle" class="state-sub">refund triggered</text>
+
+<!-- Initial pseudo-state -->
+<circle cx="135" cy="120" r="14" class="act-start"/>
+<line x1="135" y1="134" x2="135" y2="190" stroke="#6B6560" stroke-width="1.8" marker-end="url(#sa)"/>
+<text x="145" y="168" class="trans-label">Order created</text>
+
+<!-- pending → processing -->
+<path d="M210 210 Q255 115 300 115" stroke="#6B6560" stroke-width="1.8" fill="none" marker-end="url(#sa)"/>
+<text x="230" y="148" class="trans-label">admin: confirm payment</text>
+
+<!-- pending → cancelled -->
+<path d="M210 240 Q430 300 660 405" stroke="#C14A4A" stroke-width="1.5" stroke-dasharray="5,3" fill="none" marker-end="url(#sa)"/>
+<text x="370" y="295" class="trans-label" style="fill:#C14A4A;">admin: cancel order</text>
+
+<!-- processing → shipped -->
+<path d="M450 115 Q495 195 540 210" stroke="#6B6560" stroke-width="1.8" fill="none" marker-end="url(#sa)"/>
+<text x="478" y="148" class="trans-label">admin: mark shipped</text>
+
+<!-- processing → cancelled -->
+<path d="M450 130 Q570 250 660 400" stroke="#C14A4A" stroke-width="1.5" stroke-dasharray="5,3" fill="none" marker-end="url(#sa)"/>
+
+<!-- shipped → delivered -->
+<path d="M615 260 Q540 320 450 368" stroke="#3A7A5A" stroke-width="1.8" fill="none" marker-end="url(#sa)"/>
+<text x="510" y="315" class="trans-label" style="fill:#3A7A5A;">admin: mark delivered</text>
+
+<!-- shipped → cancelled -->
+<path d="M690 235 Q720 300 700 380" stroke="#C14A4A" stroke-width="1.5" stroke-dasharray="5,3" fill="none" marker-end="url(#sa)"/>
+
+<!-- Final: delivered -->
+<circle cx="375" cy="490" r="10" style="fill:none;stroke:#3A7A5A;stroke-width:3;"/>
+<circle cx="375" cy="490" r="6" style="fill:#3A7A5A;"/>
+<line x1="375" y1="440" x2="375" y2="480" stroke="#3A7A5A" stroke-width="1.5" marker-end="url(#sa)"/>
+
+<!-- Final: cancelled -->
+<circle cx="735" cy="490" r="10" style="fill:none;stroke:#C14A4A;stroke-width:3;"/>
+<circle cx="735" cy="490" r="6" style="fill:#C14A4A;"/>
+<line x1="735" y1="450" x2="735" y2="480" stroke="#C14A4A" stroke-width="1.5" marker-end="url(#sa)"/>
+
+<!-- Legend -->
+<rect x="30" y="500" width="16" height="16" style="fill:#EEF4FF;stroke:#4A7FC1;stroke-width:1.5;" rx="4"/>
+<text x="52" y="513" style="font-size:12px;fill:var(--muted);">Active state</text>
+<rect x="150" y="500" width="16" height="16" style="fill:#E8F5E9;stroke:#3A7A5A;stroke-width:1.5;" rx="4"/>
+<text x="172" y="513" style="font-size:12px;fill:var(--muted);">Terminal (success)</text>
+<rect x="310" y="500" width="16" height="16" style="fill:#FFEBEE;stroke:#C14A4A;stroke-width:1.5;" rx="4"/>
+<text x="332" y="513" style="font-size:12px;fill:var(--muted);">Terminal (cancelled)</text>
+</svg>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PANEL 7 — COMPONENT / DEPLOYMENT
+════════════════════════════════════════════════════ -->
+<div class="panel" id="p6">
+  <div class="panel-title">Component &amp; Deployment Diagram</div>
+  <div class="panel-sub">Physical deployment nodes, software components, and the communication paths between them.</div>
+  <div class="diagram-wrap">
+<svg width="1040" height="620" viewBox="0 0 1040 620" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="dep-arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+    <polygon points="0 0,9 3.5,0 7" fill="#6B6560"/>
+  </marker>
+</defs>
+
+<!-- ── CLIENT NODE ── -->
+<rect x="20" y="20" width="280" height="300" class="node-box"/>
+<text x="160" y="44" text-anchor="middle" class="node-stereo">«device»</text>
+<text x="160" y="62" text-anchor="middle" class="node-title">Client Browser</text>
+
+<!-- artifacts inside -->
+<rect x="40" y="80" width="240" height="50" class="artifact" rx="4"/>
+<text x="160" y="101" text-anchor="middle" class="artifact-t">React SPA</text>
+<text x="160" y="116" text-anchor="middle" class="artifact-s">Vite · React 18 · React Router 6</text>
+
+<rect x="40" y="145" width="110" height="42" class="artifact" rx="4"/>
+<text x="95" y="163" text-anchor="middle" class="artifact-t">AuthContext</text>
+<text x="95" y="176" text-anchor="middle" class="artifact-s">JWT · localStorage</text>
+
+<rect x="165" y="145" width="115" height="42" class="artifact" rx="4"/>
+<text x="222" y="163" text-anchor="middle" class="artifact-t">CartContext</text>
+<text x="222" y="176" text-anchor="middle" class="artifact-s">localStorage</text>
+
+<rect x="40" y="202" width="110" height="42" class="artifact" rx="4"/>
+<text x="95" y="220" text-anchor="middle" class="artifact-t">WishlistCtx</text>
+<text x="95" y="233" text-anchor="middle" class="artifact-s">localStorage</text>
+
+<rect x="165" y="202" width="115" height="42" class="artifact" rx="4"/>
+<text x="222" y="220" text-anchor="middle" class="artifact-t">Axios Instance</text>
+<text x="222" y="233" text-anchor="middle" class="artifact-s">Bearer token inject</text>
+
+<rect x="40" y="258" width="240" height="42" class="artifact" rx="4"/>
+<text x="160" y="277" text-anchor="middle" class="artifact-t">Pages + Components</text>
+<text x="160" y="291" text-anchor="middle" class="artifact-s">Home · Products · Cart · Checkout · Admin · Wishlist</text>
+
+<!-- ── SERVER NODE ── -->
+<rect x="380" y="20" width="300" height="420" class="node-box" style="fill:#FFF8F0;stroke:var(--accent);"/>
+<text x="530" y="44" text-anchor="middle" class="node-stereo">«server»</text>
+<text x="530" y="62" text-anchor="middle" class="node-title">Node.js / Express Server</text>
+
+<rect x="400" y="80" width="260" height="42" class="artifact" rx="4"/>
+<text x="530" y="99" text-anchor="middle" class="artifact-t">server.js — Express App</text>
+<text x="530" y="113" text-anchor="middle" class="artifact-s">CORS · JSON body · static /uploads</text>
+
+<rect x="400" y="138" width="120" height="42" class="artifact" rx="4"/>
+<text x="460" y="156" text-anchor="middle" class="artifact-t">auth.js</text>
+<text x="460" y="170" text-anchor="middle" class="artifact-s">JWT middleware</text>
+
+<rect x="538" y="138" width="122" height="42" class="artifact" rx="4"/>
+<text x="599" y="156" text-anchor="middle" class="artifact-t">multer</text>
+<text x="599" y="170" text-anchor="middle" class="artifact-s">image upload</text>
+
+<rect x="400" y="196" width="260" height="30" style="fill:#F0EDE8;stroke:#DDD9D4;stroke-width:1;" rx="4"/>
+<text x="530" y="217" text-anchor="middle" class="artifact-s" style="font-weight:600;">API Routes</text>
+
+<rect x="400" y="240" width="120" height="38" class="artifact" rx="4"/>
+<text x="460" y="257" text-anchor="middle" class="artifact-t">/api/auth</text>
+<text x="460" y="271" text-anchor="middle" class="artifact-s">register · login · me</text>
+
+<rect x="538" y="240" width="122" height="38" class="artifact" rx="4"/>
+<text x="599" y="257" text-anchor="middle" class="artifact-t">/api/products</text>
+<text x="599" y="271" text-anchor="middle" class="artifact-s">CRUD · search · reviews</text>
+
+<rect x="400" y="292" width="120" height="38" class="artifact" rx="4"/>
+<text x="460" y="309" text-anchor="middle" class="artifact-t">/api/orders</text>
+<text x="460" y="323" text-anchor="middle" class="artifact-s">create · list · status</text>
+
+<rect x="538" y="292" width="122" height="38" class="artifact" rx="4"/>
+<text x="599" y="309" text-anchor="middle" class="artifact-t">/api/users</text>
+<text x="599" y="323" text-anchor="middle" class="artifact-s">admin · wishlist</text>
+
+<rect x="400" y="344" width="260" height="38" class="artifact" rx="4"/>
+<text x="530" y="361" text-anchor="middle" class="artifact-t">/api/upload</text>
+<text x="530" y="375" text-anchor="middle" class="artifact-s">single · multiple · delete</text>
+
+<rect x="400" y="398" width="260" height="32" style="fill:#F0EDE8;stroke:#DDD9D4;stroke-width:1;" rx="4"/>
+<text x="530" y="419" text-anchor="middle" class="artifact-s" style="font-weight:600;">Mongoose ODM</text>
+
+<!-- ── DATABASE NODE ── -->
+<rect x="760" y="20" width="260" height="260" class="node-box" style="fill:#F3FFF5;stroke:var(--green);"/>
+<text x="890" y="44" text-anchor="middle" class="node-stereo">«database»</text>
+<text x="890" y="62" text-anchor="middle" class="node-title">MongoDB</text>
+
+<rect x="780" y="80" width="220" height="40" class="artifact" rx="4"/>
+<text x="890" y="97" text-anchor="middle" class="artifact-t">fashionshop database</text>
+<text x="890" y="111" text-anchor="middle" class="artifact-s">Atlas M0 or localhost:27017</text>
+
+<rect x="780" y="136" width="65" height="36" class="artifact" rx="4"/>
+<text x="812" y="153" text-anchor="middle" class="artifact-t">users</text>
+<text x="812" y="166" text-anchor="middle" class="artifact-s">collection</text>
+
+<rect x="858" y="136" width="65" height="36" class="artifact" rx="4"/>
+<text x="890" y="153" text-anchor="middle" class="artifact-t">products</text>
+<text x="890" y="166" text-anchor="middle" class="artifact-s">collection</text>
+
+<rect x="936" y="136" width="65" height="36" class="artifact" rx="4"/>
+<text x="968" y="153" text-anchor="middle" class="artifact-t">orders</text>
+<text x="968" y="166" text-anchor="middle" class="artifact-s">collection</text>
+
+<rect x="780" y="188" width="220" height="36" class="artifact" rx="4"/>
+<text x="890" y="205" text-anchor="middle" class="artifact-t">Text Search Index</text>
+<text x="890" y="219" text-anchor="middle" class="artifact-s">name · description · brand · tags</text>
+
+<rect x="780" y="238" width="220" height="30" class="artifact" rx="4"/>
+<text x="890" y="258" text-anchor="middle" class="artifact-s" style="font-weight:600;">Mongoose 8 · bcrypt · JWT</text>
+
+<!-- ── FILE STORAGE NODE ── -->
+<rect x="760" y="310" width="260" height="130" class="node-box" style="fill:#FFF8F0;stroke:var(--accent);"/>
+<text x="890" y="334" text-anchor="middle" class="node-stereo">«filesystem»</text>
+<text x="890" y="352" text-anchor="middle" class="node-title">Local /uploads</text>
+
+<rect x="780" y="368" width="220" height="36" class="artifact" rx="4"/>
+<text x="890" y="386" text-anchor="middle" class="artifact-t">Product Images</text>
+<text x="890" y="400" text-anchor="middle" class="artifact-s">jpg · png · webp · 5MB limit</text>
+
+<rect x="780" y="416" width="220" height="18" class="artifact" rx="3"/>
+<text x="890" y="429" text-anchor="middle" class="artifact-s">served as /uploads/* static</text>
+
+<!-- ── COMMUNICATION LINES ── -->
+<!-- Browser ↔ Express -->
+<line x1="300" y1="200" x2="380" y2="200" stroke="#4A7FC1" stroke-width="2.5" marker-end="url(#dep-arr)"/>
+<text x="338" y="192" text-anchor="middle" style="font-size:10px;fill:#4A7FC1;font-weight:700;">HTTPS</text>
+<text x="338" y="204" text-anchor="middle" style="font-size:10px;fill:var(--muted);">REST JSON</text>
+
+<!-- Express ↔ MongoDB -->
+<line x1="680" y1="220" x2="760" y2="160" stroke="#3A7A5A" stroke-width="2" marker-end="url(#dep-arr)"/>
+<text x="722" y="178" text-anchor="middle" style="font-size:10px;fill:#3A7A5A;font-weight:700;">Mongoose</text>
+
+<!-- Express ↔ Files -->
+<line x1="680" y1="380" x2="760" y2="380" stroke="#C17F4A" stroke-width="2" marker-end="url(#dep-arr)"/>
+<text x="722" y="372" text-anchor="middle" style="font-size:10px;fill:#C17F4A;font-weight:700;">multer</text>
+
+<!-- ── ENV BOX ── -->
+<rect x="380" y="480" width="300" height="100" fill="#FFFBF0" stroke="#E8D97A" stroke-width="1.5" rx="6"/>
+<text x="530" y="500" text-anchor="middle" style="font-size:11px;fill:var(--muted);font-weight:700;">backend/.env</text>
+<text x="530" y="520" text-anchor="middle" class="artifact-s">MONGO_URI=mongodb+srv://…</text>
+<text x="530" y="536" text-anchor="middle" class="artifact-s">JWT_SECRET=&lt;strong random key&gt;</text>
+<text x="530" y="552" text-anchor="middle" class="artifact-s">PORT=5000  ·  NODE_ENV=development</text>
+<text x="530" y="568" text-anchor="middle" class="artifact-s">CORS_ORIGIN=http://localhost:3000</text>
+<line x1="530" y1="480" x2="530" y2="440" stroke="#E8D97A" stroke-width="1.2" stroke-dasharray="4,3"/>
+</svg>
+  </div>
+</div>
+
+<script>
+function show(i) {
+  document.querySelectorAll('.panel').forEach((p,j) => p.classList.toggle('active', j===i));
+  document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('active', j===i));
+}
+</script>
+</body>
+</html>

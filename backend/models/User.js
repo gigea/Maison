@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true, minlength: 6 },
   role:     { type: String, enum: ['user', 'admin'], default: 'user' },
   avatar:   { type: String, default: '' },
+  isBanned: { type: Boolean, default: false },
   wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   addresses: [{
     label:    String,

@@ -1,0 +1,12 @@
+.profile-page { padding-bottom: 80px; }
+.profile-card { max-width: 900px; margin: 40px auto; padding: 32px; }
+.profile-header h1 { margin-bottom: 6px; }
+.profile-header p { color: var(--c-muted); margin-bottom: 24px; }
+.profile-form { display: flex; flex-direction: column; gap: 24px; }
+.profile-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.profile-section { padding: 24px 0; border-top: 1px solid var(--c-border); }
+.profile-section h2 { margin-bottom: 18px; }
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+@media (max-width: 768px) {
+  .profile-grid { grid-template-columns: 1fr; }
+}

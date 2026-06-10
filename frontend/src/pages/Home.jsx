@@ -6,24 +6,10 @@ import './Home.css';
 
 export default function Home() {
   const [featured, setFeatured] = useState([]);
-  const [recent, setRecent] = useState([]);
   const [loading,  setLoading]  = useState(true);
-  const [recentLoading, setRecentLoading] = useState(true);
 
   useEffect(() => {
     api.get('/products/featured').then(r => setFeatured(r.data)).catch(console.error).finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    const ids = JSON.parse(localStorage.getItem('recentViews') || '[]');
-    if (!ids.length) {
-      setRecentLoading(false);
-      return;
-    }
-    api.get('/products/recent', { params: { ids: ids.join(',') } })
-      .then(r => setRecent(r.data))
-      .catch(console.error)
-      .finally(() => setRecentLoading(false));
   }, []);
 
   return (
@@ -76,22 +62,6 @@ export default function Home() {
           </div>
         )}
       </section>
-
-      {recent.length > 0 && (
-        <section className="recent container">
-          <div className="section-header">
-            <h2>Recently Viewed</h2>
-            <Link to="/products" className="btn btn-ghost">Browse more</Link>
-          </div>
-          {recentLoading ? (
-            <div className="loading-center"><div className="spinner" /></div>
-          ) : (
-            <div className="products-grid">
-              {recent.map(p => <ProductCard key={p._id} product={p} />)}
-            </div>
-          )}
-        </section>
-      )}
 
       {/* Banner */}
       <section className="banner">

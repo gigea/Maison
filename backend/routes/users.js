@@ -23,9 +23,30 @@ router.put('/:id/role', protect, admin, async (req, res) => {
   }
 });
 
+// PUT /api/users/:id/ban — admin ban/unban user
+router.put('/:id/ban', protect, admin, async (req, res) => {
+  try {
+    const { banned } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (user.role === 'admin' && banned) return res.status(403).json({ message: 'Cannot ban another admin' });
+    user.isBanned = Boolean(banned);
+    await user.save();
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+
 // DELETE /api/users/:id — admin delete user
 router.delete('/:id', protect, admin, async (req, res) => {
   try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (user.role === 'admin') return res.status(403).json({ message: 'Cannot delete admin user' });
     await User.findByIdAndDelete(req.params.id);
     res.json({ message: 'User removed' });
   } catch (err) {

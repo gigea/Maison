@@ -1,0 +1,15 @@
+.sticky-atc {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
+  background: var(--c-surface); border-top: 1px solid var(--c-border);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+  animation: slide-up-bar 0.25s ease;
+  padding: 12px 0;
+}
+@keyframes slide-up-bar { from { transform:translateY(100%); opacity:0; } to { transform:none; opacity:1; } }
+.sticky-atc-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.sticky-atc-info  { display: flex; align-items: center; gap: 14px; }
+.sticky-atc-img   { width: 48px; height: 60px; object-fit: cover; border-radius: var(--radius-sm); }
+.sticky-atc-name  { font-weight: 600; font-size: 15px; }
+.sticky-atc-price { font-size: 14px; margin-top: 2px; }
+.sticky-atc-price s { color: var(--c-muted); font-size: 12px; margin-left: 4px; font-weight: 400; }
+@media (max-width: 480px) { .sticky-atc-img { display: none; } }

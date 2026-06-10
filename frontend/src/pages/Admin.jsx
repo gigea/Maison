@@ -42,9 +42,11 @@ function ProductModal({ initial, onClose, onSaved }) {
       images:    initial.images?.length ? [...initial.images] : [''],
     };
   });
-  const [saving,   setSaving]   = useState(false);
-  const [error,    setError]    = useState('');
-  const [newColor, setNewColor] = useState({ name:'', hex:'#000000' });
+  const [saving,    setSaving]    = useState(false);
+  const [error,     setError]     = useState('');
+  const [newColor,  setNewColor]  = useState({ name:'', hex:'#000000' });
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef();
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -58,6 +60,37 @@ function ProductModal({ initial, onClose, onSaved }) {
   };
 
   const setImg = (i, v) => { const a = [...form.images]; a[i] = v; set('images', a); };
+
+  // Upload images from PC
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploading(true); setError('');
+    try {
+      const uploaded = [];
+      for (const file of files) {
+        const fd = new FormData();
+        fd.append('image', file);
+        const { data } = await api.post('/upload', fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        uploaded.push(data.url);
+      }
+      // Merge into images list, replace empty slots first
+      const current = [...form.images];
+      for (const url of uploaded) {
+        const emptyIdx = current.findIndex(img => !img);
+        if (emptyIdx >= 0) current[emptyIdx] = url;
+        else current.push(url);
+      }
+      set('images', current);
+    } catch (err) {
+      setError('Upload failed: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setUploading(false);
+      e.target.value = ''; // reset file input
+    }
+  };
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -186,16 +219,54 @@ function ProductModal({ initial, onClose, onSaved }) {
               {/* Images */}
               <section className="mf-section">
                 <h4>Images</h4>
-                {form.images.map((img, i) => (
-                  <div key={i} className="image-row">
-                    <input className="form-input" value={img} placeholder="https://..."
-                      onChange={e => setImg(i, e.target.value)} />
-                    {img && <img src={img} alt="prev" className="img-preview" onError={e=>e.target.style.display='none'} />}
-                    {form.images.length > 1 &&
-                      <button type="button" className="btn btn-ghost btn-sm" onClick={() => set('images', form.images.filter((_,j)=>j!==i))}>×</button>}
+
+                {/* Upload from PC */}
+                <div className="upload-zone" onClick={() => fileInputRef.current?.click()}>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    style={{ display: 'none' }}
+                    onChange={handleFileUpload}
+                  />
+                  {uploading
+                    ? <><div className="spinner" style={{width:24,height:24,borderWidth:2}} /> <span>Uploading…</span></>
+                    : <><span className="upload-icon">📁</span> <span>Click to upload from your PC</span> <span className="upload-hint">JPG, PNG, WebP up to 5MB each · multiple files OK</span></>
+                  }
+                </div>
+
+                {/* Image list */}
+                {form.images.filter(Boolean).length > 0 && (
+                  <div className="image-thumbs">
+                    {form.images.map((img, i) => img ? (
+                      <div key={i} className="image-thumb">
+                        <img src={img} alt={`img ${i+1}`} onError={e=>e.target.src='https://via.placeholder.com/80x100?text=err'} />
+                        <button type="button" className="thumb-remove"
+                          onClick={() => set('images', form.images.filter((_,j)=>j!==i))}>×</button>
+                        {i === 0 && <span className="thumb-primary">Main</span>}
+                      </div>
+                    ) : null)}
                   </div>
-                ))}
-                <button type="button" className="btn btn-outline btn-sm" onClick={() => set('images', [...form.images,''])}>+ Add URL</button>
+                )}
+
+                {/* Or paste a URL */}
+                <details className="url-details">
+                  <summary>Or paste an image URL instead</summary>
+                  <div style={{marginTop:10}}>
+                    {form.images.map((img, i) => (
+                      <div key={i} className="image-row">
+                        <input className="form-input" value={img} placeholder="https://..."
+                          onChange={e => setImg(i, e.target.value)} />
+                        {form.images.length > 1 &&
+                          <button type="button" className="btn btn-ghost btn-sm"
+                            onClick={() => set('images', form.images.filter((_,j)=>j!==i))}>×</button>}
+                      </div>
+                    ))}
+                    <button type="button" className="btn btn-outline btn-sm"
+                      onClick={() => set('images', [...form.images,''])}>+ Add URL</button>
+                  </div>
+                </details>
               </section>
 
               {/* Colors */}
@@ -313,7 +384,7 @@ function StockCell({ productId, initial, onUpdate }) {
 
 /* ─── Main Admin Page ────────────────────────────────────── */
 export default function Admin() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const navigate    = useNavigate();
   const [tab,      setTab]      = useState('products');
   const [products, setProducts] = useState([]);
@@ -321,7 +392,7 @@ export default function Admin() {
   const [users,    setUsers]    = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [modal,    setModal]    = useState(null);   // null | 'new' | product object
-  const [confirm,  setConfirm]  = useState(null);  // null | product to delete
+  const [confirm,  setConfirm]  = useState(null);  // null | { type, id, name }
   const [search,   setSearch]   = useState('');
   const [toast,    setToast]    = useState('');
 
@@ -354,14 +425,7 @@ export default function Admin() {
     setModal(null);
   };
 
-  /* Delete */
-  const handleDeleteConfirm = async () => {
-    const id = confirm._id;
-    setConfirm(null);
-    await api.delete(`/products/${id}`);
-    setProducts(prev => prev.filter(p => p._id !== id));
-    showToast('Product removed');
-  };
+  /* Delete (handled by unified confirm handler below) */
 
   /* Duplicate */
   const handleDuplicate = async (product) => {
@@ -370,6 +434,33 @@ export default function Admin() {
     const { data } = await api.post('/products', payload);
     setProducts(prev => [data, ...prev]);
     showToast('Product duplicated');
+  };
+
+  const handleUserBanToggle = async (userToUpdate) => {
+    try {
+      const { data } = await api.put(`/users/${userToUpdate._id}/ban`, { banned: !userToUpdate.isBanned });
+      setUsers(prev => prev.map(u => u._id === data._id ? data : u));
+      showToast(data.isBanned ? 'User banned' : 'User unbanned');
+    } catch (err) {
+      console.error(err);
+      showToast('Unable to update user ban status');
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    const { id, type } = confirm || {};
+    setConfirm(null);
+    if (type === 'product') {
+      await api.delete(`/products/${id}`);
+      setProducts(prev => prev.filter(p => p._id !== id));
+      showToast('Product removed');
+      return;
+    }
+    if (type === 'user') {
+      await api.delete(`/users/${id}`);
+      setUsers(prev => prev.filter(u => u._id !== id));
+      showToast('User removed');
+    }
   };
 
   /* Inline stock update */
@@ -415,6 +506,7 @@ export default function Admin() {
           onCancel={() => setConfirm(null)}
         />
       )}
+
 
       {/* Page header */}
       <div className="admin-page-header">
@@ -523,7 +615,7 @@ export default function Admin() {
                           <div className="action-btns">
                             <button className="btn btn-outline btn-sm" onClick={() => setModal(p)} title="Edit">Edit</button>
                             <button className="btn btn-ghost btn-sm" onClick={() => handleDuplicate(p)} title="Duplicate">⧉</button>
-                            <button className="btn btn-ghost btn-sm danger" onClick={() => setConfirm(p)} title="Delete">✕</button>
+                            <button className="btn btn-ghost btn-sm danger" onClick={() => setConfirm({ type: 'product', id: p._id, name: p.name })} title="Delete">✕</button>
                           </div>
                         </td>
                       </tr>
@@ -577,14 +669,36 @@ export default function Admin() {
             <div className="tab-toolbar"><span className="total-count">{users.length} users</span></div>
             <div className="admin-table card">
               <table>
-                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
+                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
                 <tbody>
                   {users.map(u => (
                     <tr key={u._id}>
                       <td>{u.name}</td>
                       <td>{u.email}</td>
-                      <td><span className={`badge ${u.role==='admin'?'badge-sale':'badge-new'}`}>{u.role}</span></td>
+                      <td>
+                        <span className={`badge ${u.role==='admin'?'badge-sale':'badge-new'}`}>{u.role}</span>
+                        {u.isBanned && <span className="badge badge-danger" style={{ marginLeft: 6 }}>Banned</span>}
+                      </td>
                       <td>{new Date(u.createdAt).toLocaleDateString()}</td>
+                      <td>
+                        <div className="action-btns">
+                          <button
+                            className={`btn btn-outline btn-sm ${u.isBanned ? 'btn-success' : 'btn-danger'}`}
+                            onClick={() => handleUserBanToggle(u)}
+                            disabled={u._id === user?._id}
+                          >
+                            {u.isBanned ? 'Unban' : 'Ban'}
+                          </button>
+
+                          <button
+                            className="btn btn-ghost btn-sm danger"
+                            onClick={() => setConfirm({ type: 'user', id: u._id, name: u.name })}
+                            disabled={u._id === user?._id}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

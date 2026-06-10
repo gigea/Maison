@@ -1,0 +1,9 @@
+.page-top { padding-top: 2.5rem; }
+.sg-table-wrap { overflow-x: auto; margin: 1rem 0; }
+.sg-table { width: 100%; border-collapse: collapse; background: var(--c-surface); color: var(--c-text); }
+.sg-table th, .sg-table td { padding: 0.5rem 0.75rem; border-bottom: 1px solid rgba(0,0,0,0.06); text-align: left; }
+.sg-table th { font-weight: 600; }
+.sg-tips { margin-top: 1.25rem; color: var(--c-muted); }
+.muted { color: var(--c-muted); }
+.contact-form label { display:block; margin:0.5rem 0; }
+.contact-form input, .contact-form textarea { width:100%; padding:0.5rem; border:1px solid rgba(0,0,0,0.08); background:transparent; color:inherit; }

@@ -1,0 +1,60 @@
+@startuml
+title Backend Data Model
+
+entity User {
+  * _id : ObjectId
+  * name : String
+  * email : String
+  * password : String
+  * role : String
+  * avatar : String
+  * isBanned : Boolean
+  * wishlist : ObjectId[]
+  * addresses : Address[]
+}
+
+entity Product {
+  * _id : ObjectId
+  * name : String
+  * description : String
+  * price : Number
+  * salePrice : Number
+  * category : String
+  * gender : String
+  * sizes : String[]
+  * colors : Color[]
+  * images : String[]
+  * stock : Number
+  * brand : String
+  * tags : String[]
+  * reviews : Review[]
+  * rating : Number
+  * numReviews : Number
+  * featured : Boolean
+  * isActive : Boolean
+}
+
+entity Order {
+  * _id : ObjectId
+  * user : ObjectId
+  * items : OrderItem[]
+  * shippingAddress : Address
+  * paymentMethod : String
+  * paymentResult : Object
+  * itemsPrice : Number
+  * shippingPrice : Number
+  * taxPrice : Number
+  * totalPrice : Number
+  * status : String
+  * isPaid : Boolean
+  * paidAt : Date
+  * isDelivered : Boolean
+  * deliveredAt : Date
+}
+
+User ||--o{ Product : wishlist
+User ||--o{ Order : places
+Order ||--o{ Product : contains
+Product ||--o{ User : reviewed by
+
+@enduml

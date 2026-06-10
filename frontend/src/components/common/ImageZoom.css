@@ -1,0 +1,18 @@
+.zoom-wrap {
+  position: relative; overflow: hidden;
+  aspect-ratio: 4/5; border-radius: var(--radius-md);
+  background: #F5F3F0; cursor: crosshair;
+}
+.zoom-img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.1s ease;
+  will-change: transform;
+  display: block;
+}
+.zoom-hint {
+  position: absolute; bottom: 12px; right: 12px;
+  background: rgba(255,255,255,0.85); padding: 4px 10px;
+  border-radius: 40px; font-size: 11px; color: var(--c-muted);
+  pointer-events: none; backdrop-filter: blur(4px);
+}
+.zoom-wrap.zoomed .zoom-hint { display: none; }

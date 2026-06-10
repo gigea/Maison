@@ -19,10 +19,10 @@ export default function Footer() {
           </div>
           <div>
             <h4>Help</h4>
-            <Link to="#">Size Guide</Link>
-            <Link to="#">Returns</Link>
-            <Link to="#">Shipping</Link>
-            <Link to="#">Contact</Link>
+            <Link to="/size-guide">Size Guide</Link>
+            <Link to="/returns">Returns</Link>
+            <Link to="/shipping">Shipping</Link>
+            <Link to="/contact">Contact</Link>
           </div>
           <div>
             <h4>Account</h4>

@@ -1,0 +1,5 @@
+.related-products { padding: 48px 0 0; }
+.related-products h2 { font-size: 1.4rem; margin-bottom: 24px; }
+.related-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+@media (max-width: 1024px) { .related-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 640px)  { .related-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } }

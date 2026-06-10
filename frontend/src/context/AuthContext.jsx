@@ -5,30 +5,41 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user,  setUser]  = useState(() => JSON.parse(localStorage.getItem('user')  || 'null'));
-  const [token, setToken] = useState(() => localStorage.getItem('token') || null);
+  const [accessToken, setAccessToken] = useState(() => localStorage.getItem('accessToken') || null);
+  const [refreshToken, setRefreshToken] = useState(() => localStorage.getItem('refreshToken') || null);
 
   const login = useCallback(async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password });
-    localStorage.setItem('token', data.token);
+    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('refreshToken', data.refreshToken);
     localStorage.setItem('user',  JSON.stringify(data.user));
-    setToken(data.token);
+    setAccessToken(data.accessToken);
+    setRefreshToken(data.refreshToken);
     setUser(data.user);
     return data.user;
   }, []);
 
   const register = useCallback(async (name, email, password) => {
     const { data } = await api.post('/auth/register', { name, email, password });
-    localStorage.setItem('token', data.token);
+    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('refreshToken', data.refreshToken);
     localStorage.setItem('user',  JSON.stringify(data.user));
-    setToken(data.token);
+    setAccessToken(data.accessToken);
+    setRefreshToken(data.refreshToken);
     setUser(data.user);
     return data.user;
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('token');
+
+
+  const logout = useCallback(async () => {
+    const stored = localStorage.getItem('refreshToken');
+    try { await api.post('/auth/logout', { refreshToken: stored }); } catch (e) { /* ignore */ }
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
-    setToken(null);
+    setAccessToken(null);
+    setRefreshToken(null);
     setUser(null);
   }, []);
 
@@ -37,8 +48,21 @@ export function AuthProvider({ children }) {
     setUser(updated);
   }, []);
 
+  const updateAuth = useCallback((updatedUser, tokens) => {
+    if (tokens?.accessToken) {
+      localStorage.setItem('accessToken', tokens.accessToken);
+      setAccessToken(tokens.accessToken);
+    }
+    if (tokens?.refreshToken) {
+      localStorage.setItem('refreshToken', tokens.refreshToken);
+      setRefreshToken(tokens.refreshToken);
+    }
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, updateUser, isAdmin: user?.role === 'admin' }}>
+    <AuthContext.Provider value={{ user, accessToken, refreshToken, login, register, logout, updateUser, updateAuth, isAdmin: user?.role === 'admin' }}>
       {children}
     </AuthContext.Provider>
   );

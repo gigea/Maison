@@ -1,0 +1,48 @@
+@startuml
+title Frontend Architecture
+
+package "App Shell" {
+  [Navbar]
+  [Footer]
+  [BackToTop]
+}
+
+package "Page Routes" {
+  [Home]
+  [Products]
+  [ProductDetail]
+  [Cart]
+  [Wishlist]
+  [Auth]
+  [Checkout]
+  [Profile]
+  [Orders]
+  [OrderDetail]
+  [Admin]
+  [AdminProductForm]
+  [SizeGuide]
+  [Shipping]
+  [Returns]
+  [Contact]
+}
+
+[Navbar] --> [Home]
+[Navbar] --> [Products]
+[Navbar] --> [Wishlist]
+[Navbar] --> [Cart]
+[Navbar] --> [Profile]
+[Navbar] --> [Admin]
+
+[Home] --> [ProductDetail]
+[Products] --> [ProductDetail]
+[Cart] --> [Checkout]
+[Wishlist] --> [ProductDetail]
+[Profile] --> [Orders]
+[Orders] --> [OrderDetail]
+
+[Footer] --> [SizeGuide]
+[Footer] --> [Shipping]
+[Footer] --> [Returns]
+[Footer] --> [Contact]
+
+@enduml

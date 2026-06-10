@@ -39,6 +39,9 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
+html[data-theme="dark"] body {
+  transition: background var(--transition), color var(--transition);
+}
 img { max-width: 100%; display: block; }
 a  { color: inherit; text-decoration: none; }
 button { cursor: pointer; font-family: var(--font-body); }
@@ -62,6 +65,95 @@ h3 { font-size: 1.25rem; }
   padding: 12px 28px; border-radius: var(--radius-sm); border: none;
   font-size: 14px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;
   transition: all var(--transition); white-space: nowrap;
+}
+
+/* Dark theme overrides */
+html[data-theme="dark"] {
+  --c-bg:        #0b0b0c;
+  --c-surface:   #101213;
+  --c-border:    #1e1f22;
+  --c-text:      #ECECEC;
+  --c-muted:     #9AA0A6;
+  --c-accent:    #D8A978;
+  --c-accent-dk: #B37A4B;
+  --c-dark:      #ECECEC;
+  --c-danger:    #FF6B6B;
+  --c-success:   #3A8C5C;
+}
+
+/* Additional dark-mode tweaks for components that use hardcoded light colors */
+html[data-theme="dark"] .navbar {
+  background: rgba(16,18,19,0.75) !important;
+  border-bottom-color: rgba(255,255,255,0.04) !important;
+}
+html[data-theme="dark"] .navbar .menu-toggle span {
+  background: var(--c-text) !important;
+}
+
+/* Replace light image/card backgrounds with surface color */
+html[data-theme="dark"] .product-card-img,
+html[data-theme="dark"] .rv-img,
+html[data-theme="dark"] .wl-img-wrap,
+html[data-theme="dark"] .preview-img,
+html[data-theme="dark"] .img-preview,
+html[data-theme="dark"] .ImageZoom,
+html[data-theme="dark"] .drawer,
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .modal,
+html[data-theme="dark"] .dialog-box,
+html[data-theme="dark"] .upload-zone {
+  background: var(--c-surface) !important;
+  border-color: var(--c-border) !important;
+}
+
+/* Dim in-context images to reduce glare */
+html[data-theme="dark"] .product-card-img img,
+html[data-theme="dark"] .rv-img img,
+html[data-theme="dark"] .wl-img-wrap img,
+html[data-theme="dark"] .preview-img img,
+html[data-theme="dark"] .img-preview img,
+html[data-theme="dark"] .drawer img,
+html[data-theme="dark"] .cart-item img,
+html[data-theme="dark"] .detail-gallery img {
+  /* subtle color correction */
+  filter: brightness(0.82) contrast(0.98) saturate(0.95);
+  transition: filter 0.2s ease;
+}
+
+/* subtle dim overlay for images in dark mode */
+html[data-theme="dark"] .product-card-img::after,
+html[data-theme="dark"] .rv-img::after,
+html[data-theme="dark"] .wl-img-wrap::after,
+html[data-theme="dark"] .preview-img::after,
+html[data-theme="dark"] .img-preview::after,
+html[data-theme="dark"] .detail-gallery::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.12);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* free shipping bar: make it subtle in dark mode */
+html[data-theme="dark"] .free-ship-bar {
+  background: rgba(255,255,255,0.03) !important;
+}
+html[data-theme="dark"] .free-ship-fill {
+  background: rgba(58,140,92,0.28) !important; /* softened green */
+}
+
+/* Admin table hover row color */
+html[data-theme="dark"] .admin-table tr:hover td {
+  background: rgba(255,255,255,0.02) !important;
+}
+
+/* Tweak badges that used light backgrounds for better contrast */
+html[data-theme="dark"] .badge-sale,
+html[data-theme="dark"] .badge-new,
+html[data-theme="dark"] .badge-pending,
+html[data-theme="dark"] .badge-processing {
+  opacity: 0.9;
 }
 .btn-primary   { background: var(--c-dark); color: #fff; }
 .btn-primary:hover { background: #333; }
@@ -138,3 +230,22 @@ h3 { font-size: 1.25rem; }
 @media (min-width: 769px) {
   .hide-desktop { display: none !important; }
 }
+
+/* ─── Toast Stack ────────────────────────────────────────── */
+.toast-stack {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+  align-items: center; pointer-events: none;
+}
+.toast-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 20px; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 500; box-shadow: var(--shadow-lg);
+  pointer-events: all; cursor: pointer; white-space: nowrap;
+  animation: toast-pop 0.25s ease;
+}
+@keyframes toast-pop { from { opacity:0; transform:translateY(10px) scale(0.95); } to { opacity:1; transform:none; } }
+.toast-icon { font-size: 15px; }
+.toast-success { background: #1B5E20; color: #fff; }
+.toast-error   { background: var(--c-danger); color: #fff; }
+.toast-info    { background: var(--c-dark); color: #fff; }
