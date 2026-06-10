@@ -1,7 +1,6 @@
 const express  = require('express');
 const mongoose = require('mongoose');
 const cors     = require('cors');
-const cookieParser = require('cookie-parser');
 const dotenv   = require('dotenv');
 const path     = require('path');
 const fs       = require('fs');
@@ -13,7 +12,24 @@ if (!process.env.MONGO_URI) {
   console.error('\n❌  MONGO_URI is not set.');
   console.error('    Copy backend/.env.example → backend/.env and fill it in.');
   console.error('    Then run:  node setup.js  for a guided setup.\n');
-  process.exit(1);
+  // In development, prefer an in-memory MongoDB to simplify local runs.
+  if ((process.env.NODE_ENV || 'development') !== 'production') {
+    console.warn('⚠️  MONGO_URI not set — will attempt to start an in-memory MongoDB for local development.');
+    try {
+      const { MongoMemoryServer } = require('mongodb-memory-server');
+      // create an instance now and set MONGO_URI for connectWithRetry
+      (async () => {
+        const mongod = await MongoMemoryServer.create();
+        process.env.MONGO_URI = mongod.getUri();
+        console.log('Using in-memory MongoDB for development');
+      })();
+    } catch (e) {
+      console.error('mongodb-memory-server is not installed. Please run `npm i -D mongodb-memory-server` or set MONGO_URI.');
+      process.exit(1);
+    }
+  } else {
+    process.exit(1);
+  }
 }
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your_super_secret_jwt_key_change_this_in_production') {
   console.warn('⚠️   JWT_SECRET is using the default value. Change it in backend/.env before going to production.');
@@ -96,12 +112,30 @@ async function connectWithRetry(retries = 5, delay = 3000) {
 
 // ── Boot ──────────────────────────────────────────────────
 connectWithRetry().then(() => {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`   Health check: http://localhost:${PORT}/api/health\n`);
-  });
+  const startPort = parseInt(process.env.PORT, 10) || 5000;
+  const maxAttempts = 5;
+  let attempt = 0;
+
+  function tryListen(port) {
+    attempt++;
+    const server = app.listen(port, () => {
+      console.log(`🚀 Server running on http://localhost:${port}`);
+      console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`   Health check: http://localhost:${port}/api/health\n`);
+    });
+
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE' && attempt < maxAttempts) {
+        console.warn(`Port ${port} in use — trying ${port + 1}...`);
+        tryListen(port + 1);
+      } else {
+        console.error('Server failed to start:', err);
+        process.exit(1);
+      }
+    });
+  }
+
+  tryListen(startPort);
 });
 
 // Graceful shutdown

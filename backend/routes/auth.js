@@ -34,15 +34,8 @@ router.post('/login', async (req, res) => {
 
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
-    await RefreshToken.create({ token: refreshToken, user: user._id, ip: req.ip, userAgent: req.get('User-Agent'), expiresAt: new Date(Date.now() + 30*24*60*60*1000) });
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-      path: '/',
-    });
-    res.json({ user, accessToken });
+    // Return both tokens in JSON (client stores refresh token)
+    res.json({ user, accessToken, refreshToken });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
