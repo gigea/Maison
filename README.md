@@ -135,3 +135,7 @@ shop/
 | `npm run seed` | Seed sample data into MongoDB |
 | `npm run install-all` | Install all dependencies |
 | `npm run build` | Build frontend for production |
+<<<<<<< HEAD
+=======
+"# Maison" 
+>>>>>>> aa6bc4b7cbf0db5cce442e1373ea53bdfa45f0c8
